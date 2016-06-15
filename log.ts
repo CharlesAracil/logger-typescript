@@ -64,7 +64,8 @@ export class Log {
   protected static current_prefix: string = "";
   protected static current_callback: (msg: string) => void = null;
   protected static current_message: string = "";
-
+  protected static current_filter: string = "";
+  
   protected static error(msg: string): void {
     throw {
       name: "LogError",
@@ -257,7 +258,7 @@ export class Log {
     }
   }
 
-  protected static format(prefix, msg, filter): string {
+  protected static format(): string {
     return Log.output_format.replace(/\{(\w+)\}/g, Log.renderer);
   }
 
@@ -272,9 +273,10 @@ export class Log {
       Log.current_prefix   = Log.settings[level][0]
       Log.current_callback = Log.settings[level][1];
       Log.current_message = msg;
+      Log.current_filter = filter;
       if ((level !== "debug") || (Log.debug_activated)) {
         if ((!filter) || (Log.display_filters.indexOf(filter) !== -1)) {
-          Log.current_callback(Log.format(Log.current_prefix, msg, filter));
+          Log.current_callback(Log.format());
         }
       }
     }
