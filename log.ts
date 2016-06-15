@@ -44,13 +44,26 @@ export class Log {
   protected static debug_activated: boolean = false;
   /* By default, there is no indentation */
   protected static indentation: string = "";
-  protected static debug_filters: string[] = [];
+  /* By default, we display all logs */
+  protected static display_filters: string[] = [];
+  /* log format, Python style, can use keys from custom_data */
+  protected static output_format: string = "{indentation}{prefix} {date} > {message}";
+  /* Custom data provided by user, like author, module name, version, ... */
+  protected static custom_data: {[key: string]: boolean|number|string} = {};
+  /** Log level settings
+   *
+   *  Map a log level to a couple built with the prefix to be displayed and the output callback.
+   */
   protected static settings: {[key: string]: LOG_SETTING_TYPE} = {
     info    : ["[i]", console.log],
     warning : ["[!]", console.warn],
     error   : ["[X]", console.error],
     debug   : ["[D]", console.log]
   };
+
+  protected static current_prefix: string = "";
+  protected static current_callback: (msg: string) => void = null;
+  protected static current_message: string = "";
 
   protected static error(msg: string): void {
     throw {
@@ -80,14 +93,24 @@ export class Log {
     }
   }
 
+  /** Activate debug level
+   *
+   *  @param flag true to activate, false elsewhere
+   */
   public static set_debug(flag: boolean): void {
     Log.debug_activated = flag;
   }
 
-  public static add_log_filter(...filters: string[]): void  {
+  /** Add one or several display filters
+   *
+   *  Filters must not be already defined.
+   *
+   *  @param ...filters one are several filter names
+   */
+  public static add_display_filters(...filters: string[]): void  {
     for (let ifilter in filters) {
-      if (Log.debug_filters.indexOf(filters[ifilter]) === -1) {
-        Log.debug_filters.push(filters[ifilter]);
+      if (Log.display_filters.indexOf(filters[ifilter]) === -1) {
+        Log.display_filters.push(filters[ifilter]);
       }
       else {
         Log.error("Filter '" + filters[ifilter] + "' is already defined");
@@ -95,11 +118,17 @@ export class Log {
     }
   }
 
-  public static remove_log_filter(...filters: string[]): void  {
+  /** Remove one or several display filters
+   *
+   *  Filters must be defined.
+   *
+   *  @param ...filters one are several filter names
+   */
+  public static remove_display_filters(...filters: string[]): void  {
     for (let ifilter in filters) {
-      let index = Log.debug_filters.indexOf(filters[ifilter]);
+      let index = Log.display_filters.indexOf(filters[ifilter]);
       if (index !== -1) {
-        Log.debug_filters.splice(index, 1);
+        Log.display_filters.splice(index, 1);
       }
       else {
         Log.error("Filter '" + filters[ifilter] + "' does not exist");
@@ -107,8 +136,11 @@ export class Log {
     }
   }
 
-  public static clear_log_filter(): void {
-    Log.debug_filters = [];
+  /** Remove all display filters
+   *
+   */
+  public static clear_display_filter(): void {
+    Log.display_filters = [];
   }
 
   /** Add a log level
@@ -155,20 +187,94 @@ export class Log {
     }
   }
 
+  /** Add a custom data
+   *
+   *  @param key    the key, should match the regex \w+
+   *  @param value  the value
+   */
+  public static add_custom_data(key: string, value: any): void {
+    if (["indentation", "prefix", "date", "message"].indexOf(key) === -1) {
+      if (!(key in Log.custom_data)) {
+        Log.custom_data[key] = value;
+      }
+      else {
+        Log.error("Key '" + key + "' is already defined in custom data");
+      }
+    }
+    else {
+      Log.error("Reserved key '" + key + "' cannot be defined in custom data");
+    }
+  }
+
+  /** Remove a custom data
+   *
+   *  @param key the key
+   */
+  public static remove_custom_data(key: string): void {
+    if (key in Log.custom_data) {
+      delete Log.custom_data[key];
+    }
+    else {
+      Log.error("Key '" + key + "' does not exist in custom data");
+    }
+  }
+
+  /** Set output format
+   *
+   *  Format must be compliant with Python-like formatting, namely a line like this:
+   *  "some log {param1} {param2} stuff stuf {param3}"
+   *  Those 'parami' must have been defined in 'custom_data', otherwise they will be left as they
+   *  are.
+   *
+   *  @param format the output format
+   */
+  public static set_output_format(format: string): void {
+    Log.output_format = format;
+  }
+
+  protected static renderer(substr: string, ...args: any[]): string {
+    if (typeof substr !== "undefined") {
+      if (args[0] === "indentation") {
+      return Log.indentation;
+      }
+      else if (args[0] === "prefix") {
+        return Log.current_prefix;
+      }
+      else if (args[0] === "date") {
+        let date = new Date();
+        return date.getFullYear() + "/" + date.getMonth() + "/" + date.getDate() + "|" +
+               date.getHours() + ":" + date.getMinutes() + ":" + date.getSeconds();
+      }
+      else if (args[0] === "message") {
+        return Log.current_message;
+      }
+      else if (args[0] in Log.custom_data) {
+        return "" + Log.custom_data[args[0]];
+      }
+      else {
+        return substr;
+      }
+    }
+  }
+
+  protected static format(prefix, msg, filter): string {
+    return Log.output_format.replace(/\{(\w+)\}/g, Log.renderer);
+  }
+
+  /** Log something
+   *
+   *  @param level  the log level used to log
+   *  @param msg    the message to log
+   *  @param filter an optional display filter
+   */
   public static log(level: string, msg: string, filter: string = null): void {
     if (level in Log.settings) {
-      let prefix = Log.settings[level][0]
-      let callback = Log.settings[level][1];
-
-      if (level !== "debug") {
-        callback(Log.indentation + prefix + " " + msg);
-      }
-      else if (Log.debug_activated) {
-        if (!filter) {
-          callback(Log.indentation + prefix + " " + msg);
-        }
-        else if ((!Log.debug_filters.length) || (Log.debug_filters.indexOf(filter) !== -1)) {
-          callback(Log.indentation + prefix + " (" + filter + ") " + msg);
+      Log.current_prefix   = Log.settings[level][0]
+      Log.current_callback = Log.settings[level][1];
+      Log.current_message = msg;
+      if ((level !== "debug") || (Log.debug_activated)) {
+        if ((!filter) || (Log.display_filters.indexOf(filter) !== -1)) {
+          Log.current_callback(Log.format(Log.current_prefix, msg, filter));
         }
       }
     }

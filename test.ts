@@ -76,10 +76,10 @@ catch (e) {
 // debug filter
 Log.log("debug", "Panier, panier, piano, ...");
 Log.log("debug", "One of us! One of us!", "FILTER1");
-Log.add_log_filter("FILTER1");
+Log.add_display_filters("FILTER1");
 try {
   // add a filter that already exist
-  Log.add_log_filter("FILTER1");
+  Log.add_display_filters("FILTER1");
 }
 catch (e) {
   Log.log("error", e.message);
@@ -88,23 +88,26 @@ Log.log("debug", "Two of us! Two of us!", "FILTER1");
 Log.log("debug", "What am I?!", "FILTER2");
 try {
   // remove a filter that does not exist
-  Log.remove_log_filter("FILTERNOOB");
+  Log.remove_display_filters("FILTERNOOB");
 }
 catch (e) {
   Log.log("error", e.message);
 }
 
 // multi debug filter
-Log.add_log_filter("FILTERA");
-Log.log("debug", "Cher ami,", "FILTERA");
-Log.log("debug", "Je suis toute émue de vous dire que j'ai", "FILTERA");
-Log.add_log_filter("FILTERB", "FILTERC", "FILTERD");
+Log.log("error", "This might be a legend", "FILTERA");
+Log.add_display_filters("FILTERA");
+Log.log("info", "Cher ami,", "FILTERA");
+Log.log("info", "Je suis toute émue de vous dire que j'ai", "FILTERA");
+Log.add_display_filters("FILTERB", "FILTERC", "FILTERD");
 Log.log("debug", "bien compris l'autre jour que vous aviez", "FILTERE");
-Log.log("debug", "toujours une envie folle de me faire", "FILTERB");
-Log.log("debug", "danser. Je garde le souvenir de votre", "FILTERE");
-Log.log("debug", "baiser et je voudrais bien que ce soit", "FILTERC");
-Log.remove_log_filter("FILTERB", "FILTERC", "FILTERD");
+Log.log("warning", "toujours une envie folle de me faire", "FILTERB");
+Log.add_log_level("Hot", "[H]");
+Log.log("info", "danser. Je garde le souvenir de votre", "FILTERE");
+Log.log("Hot", "baiser et je voudrais bien que ce soit", "FILTERC");
+Log.remove_display_filters("FILTERB", "FILTERC", "FILTERD");
 Log.log("debug", "une preuve que je puisse être aimée", "FILTERA");
-Log.log("debug", "par vous.", "FILTERA");
-Log.clear_log_filter();
+Log.log("Hot", "par vous.", "FILTERA");
+Log.clear_display_filter();
 Log.log("debug", "Georges.");
+Log.log("debug", "Georges.", "FILTERA");
