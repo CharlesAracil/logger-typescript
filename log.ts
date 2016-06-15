@@ -24,15 +24,25 @@ SOFTWARE.
 NO WARRANTY EXPRESSED OR IMPLIED. USE AT YOUR OWN RISK.
 */
 
-/**
+/** Log utility
  *
+ *  Allow for a easy-to-read log with dynamic levels to identify info, warning, error and whatever
+ *  is needed.
+ *
+ *  Any error in use will throw a "LogError" exception.
  */
 
 type CALLBACK_TYPE = (msg: string) => void;
 type LOG_SETTING_TYPE = [string, CALLBACK_TYPE];
 
+/** Log class
+ *
+ *  All use is static, no need for instanciation?
+ */
 export class Log {
+  /* By default, debug level is disabled */
   protected static debug_activated: boolean = false;
+  /* By default, there is no indentation */
   protected static indentation: string = "";
   protected static debug_filters: string[] = [];
   protected static settings: {[key: string]: LOG_SETTING_TYPE} = {
@@ -49,11 +59,19 @@ export class Log {
     };
   }
 
+  /** Set a number of tabulation to be inserted before each log
+   *
+   *  Useful when your script is called from another script, which logs too, and you want to
+   *  identify easily which log belongs to a script. Said otherwise, it enables a tree structure in
+   *  logs.
+   *
+   *  @param indentation_level the number of tabulations to insert
+   */
   public static set_indentation_level(indentation_level: number): void {
     if (indentation_level >= 0) {
       Log.indentation = "";
       while (indentation_level--) {
-        /* workaround to lack of repeat function */
+        /* workaround for lack of a 'repeat' function in some implementations */
         Log.indentation += "\t";
       }
     }
@@ -93,17 +111,36 @@ export class Log {
     Log.debug_filters = [];
   }
 
+  /** Add a log level
+   *
+   *  Log level must not be already defined.
+   *
+   *  @param level    the name of the level
+   *  @param prefix   an optional prefix that will be display at the head of the log line
+   *  @param callback an optional output callback that will be used
+   */
   public static add_log_level(level: string,
                               prefix: string = "[ ]",
                               callback: CALLBACK_TYPE = console.log): void {
-    if (!(level in Log.settings)) {
-      Log.settings[level] = [prefix, callback];
+    if (callback) {
+      if (!(level in Log.settings)) {
+        Log.settings[level] = [prefix, callback];
+      }
+      else {
+        Log.error("Log level '" + level + "' is already defined");
+      }
     }
     else {
-      Log.error("The log level '" + level + "' is already defined");
+      Log.error("Output callback can't be null");
     }
   }
 
+  /** Remove a log level
+   *
+   *  Log level must be defined.
+   *
+   *  @param level  the name of the level
+   */
   public static remove_log_level(level: string): void {
     if (level in Log.settings) {
       if (["info", "warning", "error", "debug"].indexOf(level) === -1) {
@@ -114,7 +151,7 @@ export class Log {
       }
     }
     else {
-      Log.error("The log level '" + level + "' does not exist");
+      Log.error("Log level '" + level + "' does not exist");
     }
   }
 
@@ -136,7 +173,7 @@ export class Log {
       }
     }
     else {
-      Log.error("The log level '" + level + "' does not exist");
+      Log.error("Log level '" + level + "' does not exist");
     }
   }
 }
