@@ -125,6 +125,14 @@ export class Log {
     }
   }
 
+  /** Set a number of tabulation to be inserted before each log
+   *
+   *  Useful when your script is called from another script, which logs too, and you want to
+   *  identify easily which log belongs to a script. Said otherwise, it enables a tree structure in
+   *  logs.
+   *
+   *  @param level the number of tabulations to insert
+   */
   public static set_indentation(level: number): void {
     if (level >= 0) {
       Log.settings.tags._common.indentation = "";
