@@ -67,7 +67,7 @@ Log.reset_output_format();
 /******************************************** ADD TAGS ********************************************/
 
 try {
-  // trying to use a log level that does not exist
+  // trying to use a log level that doesn't exist
   Log.log("Maester ShiFu", "I... I will try");
 }
 catch (e) {
@@ -91,7 +91,7 @@ Log.log("Nobody", "I am nobody");
 Log.remove_tag("Nobody");
 
 try {
-  // trying to remove a tag that do not exist
+  // trying to remove a tag that doesn't exist
   Log.remove_tag("Nobody");
 }
 catch (e) {
@@ -99,5 +99,51 @@ catch (e) {
 }
 
 /****************************************** CHANGE LEVEL ******************************************/
+try {
+  // trying to add a level refering an unexisting tag
+  Log.add_level("fake level", true, "Bobbytag", "Loopytag");
+}
+catch (e) {
+  Log.log("error", e.message);
+}
+Log.add_tag("DumbAndDumber");
+Log.add_tag("AceVentura");
+Log.add_level("Mute stupid tags", true, "DumbAndDumber", "AceVentura");
+Log.set_level("Mute stupid tags");
+Log.log("DumbAndDumber", "You'll have to excuse my friend. He's a little slow");
+Log.log("AceVentura", "I came to confess. I was the second gunman on the grassy knoll");
+Log.log("info", "Ouf, that was close");
+try {
+  // trying to remove the level we're currently on
+  Log.delete_level("Mute stupid tags");
+}
+catch (e) {
+  Log.log("error", e.message);
+}
+Log.set_level("release");
+Log.log("DumbAndDumber", "You'll have to excuse my friend. He's a little slow");
+Log.delete_level("Mute stupid tags");
+Log.log("AceVentura", "I came to confess. I was the second gunman on the grassy knoll");
+try {
+  // trying to remove a level that doesn't exist
+  Log.delete_level("Level void");
+}
+catch (e) {
+  Log.log("error", e.message);
+}
+Log.log("info", "We're near the end...");
 
-/*TODO*/
+/******************************************* FOR FUN... *******************************************/
+
+Log.add_level("Georges", true, "info");
+Log.set_level("Georges");
+
+Log.log("warning", "Cher ami,");
+Log.log("warning", "Je suis toute émue de vous dire que j'ai");
+Log.log("info", "bien compris l'autre jour que vous aviez");
+Log.log("warning", "toujours une envie folle de me faire");
+Log.log("info", "danser. Je garde le souvenir de votre");
+Log.log("warning", "baiser et je voudrais bien que ce soit");
+Log.log("info", "une preuve que je puisse être aimée");
+Log.log("warning", "par vous.");
+Log.log("error", "Georges.");

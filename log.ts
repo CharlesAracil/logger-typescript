@@ -44,28 +44,23 @@ export class Log {
       info: {
         prefix: "[i]",
         callback: console.log,
-        //filter: ["info"]
       },
       warning: {
         prefix: "[!]",
         callback: console.warn,
-        //filter: ["warning"]
       },
       error: {
         prefix: "[X]",
         callback: console.error,
-        //filter: ["error"]
       },
       debug: {
         prefix: "[D]",
         callback: console.log,
-        //filter: ["debug"]
       },
       _default: {
         output_format: "{indentation}{prefix} {date} {message}",
         prefix: "[_]",
         callback: console.log,
-        //filter: ["none"]
         /*TODO file: null,*/
       },
       _common: {
@@ -73,13 +68,13 @@ export class Log {
         tag: "",
         message: "",
         indentation: "",
-        // level: "release"
+        level: "release"
       }
     },
-    // levels: {
-    //   release: ["none", "info", "warning", "error"],
-    //   debug: ["none", "info", "warning", "error", "debug"]
-    // },
+    levels: {
+      release: ["debug"],
+      debug: []
+    },
     data_formatter: {
       date: {
         callback: Log.data_format_date,
@@ -144,7 +139,39 @@ export class Log {
   }
 
   public static set_level(level: string): void {
-    // Log.settings.tags._common.level = level;
+    Log.settings.tags._common.level = level;
+  }
+
+  public static add_level(name: string, append: boolean, ...tags: string[]): void {
+    // do not affect settings until the end, in case a tag doesn't exists
+    let tag_list = [];
+    for (let itag in tags) {
+      let tag = tags[itag];
+      if (tag in Log.settings.tags) {
+        tag_list.push(tag);
+      }
+      else {
+        Log.error("Tag '" + tag + "' does not exist");
+      }
+    }
+    if ((!(name in Log.settings.levels)) || (!append)) {
+      Log.settings.levels[name] = [];
+    }
+    Log.settings.levels[name] += tag_list;
+  }
+
+  public static delete_level(name: string): void {
+    if (name in Log.settings.levels) {
+      if (Log.settings.tags._common.level !== name) {
+        delete Log.settings.levels[name];
+      }
+      else {
+        Log.error("You cannot delete level '" + name + "' because you're currently using it");
+      }
+    }
+    else {
+      Log.error("Level '" + name + "' does not exist");
+    }
   }
 
   public static add_tag(name: string,
@@ -218,10 +245,10 @@ export class Log {
     if (tag in Log.settings.tags) {
       Log.settings.tags._common.tag = tag;
       Log.settings.tags._common.message = msg;
-      // let display = Log.settings.levels[Log.get_tag_setting("level")].indexOf(tag);
-      // if (display !== -1) {
-      (Log.get_tag_setting("callback"))(Log.format());
-      // }
+      let display = Log.settings.levels[Log.get_tag_setting("level")].indexOf(tag);
+      if (display === -1) {
+        (Log.get_tag_setting("callback"))(Log.format());
+      }
     }
     else {
       Log.error("Tag '" + tag + "' is not defined");
