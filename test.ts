@@ -30,25 +30,42 @@ NO WARRANTY EXPRESSED OR IMPLIED. USE AT YOUR OWN RISK.
 
 import {Log} from "./log";
 
-// basics
+/********************************************* BASICS *********************************************/
+
 Log.log("info", "Chris Wedge did the Scrat voice");
-Log.set_indentation_level(1);
+Log.set_indentation(1);
 Log.log("warning", "Do not axe your face!");
-Log.set_indentation_level(2);
+Log.set_indentation(2);
 try {
   // trying wrong indentation level
-  Log.set_indentation_level(-1);
+  Log.set_indentation(-1);
 }
 catch (e) {
   Log.log("error", e.message);
 }
-Log.log("error", "Segfault at the beginning of the univers, could not stop program, still running");
+Log.log("error", "Segfault when booting the univers, but could not stop it... still running");
+Log.set_indentation(0);
 Log.log("debug", "I love Kim K... wow I was delusional. Hopefully this log won't be print");
-Log.set_indentation_level(0);
-Log.set_debug(true);
+Log.set_level("debug");
 Log.log("debug", "This quark is so charming");
 
-// log level
+/***************************************** CHANGE FORMAT ******************************************/
+
+Log.log("info", "The date today is... at the beginning of this line");
+Log.set_output_format("{indentation}{prefix} {date} {message} {date}")
+Log.log("info", "The date today is");
+Log.reset_output_format();
+Log.log("info", "That was clearer");
+Log.set_output_format("{indentation}{prefix} {message} {Mad} {Here}")
+Log.log("info", "We're all");
+Log.set_output_format("{indentation}{prefix} {{}} {{{{}}}}{message} {{message}} {{{message}}}")
+Log.log("info", "Pim");
+Log.set_output_format("{indentation}{prefix} {{{message}}}}} {{{message}");
+Log.log("info", "Poum");
+Log.reset_output_format();
+
+/******************************************** ADD TAGS ********************************************/
+
 try {
   // trying to use a log level that does not exist
   Log.log("Maester ShiFu", "I... I will try");
@@ -56,58 +73,31 @@ try {
 catch (e) {
   Log.log("error", e.message);
 }
-Log.add_log_level("Maester ShiFu", "['°°']", console.warn);
+Log.add_tag("Maester ShiFu", "['°°']", console.warn);
 Log.log("Maester ShiFu", "Panda, we do not wash our pits in the Pool of Sacred Tears");
-Log.remove_log_level("Maester ShiFu");
-Log.add_log_level("Maester ShiFu", "['°°']");
+Log.remove_tag("Maester ShiFu");
+try {
+  // trying to use a log level that existed but was removed
+  Log.log("Maester ShiFu", "I... I will try (again)");
+}
+catch (e) {
+  Log.log("error", e.message);
+}
+Log.add_tag("Maester ShiFu", "['°°']", console.warn);
 Log.log("Maester ShiFu", "I can control when the fruit will fall!");
-Log.remove_log_level("Maester ShiFu");
-Log.add_log_level("Nobody");
+
+Log.add_tag("Nobody");
 Log.log("Nobody", "I am nobody");
-Log.remove_log_level("Nobody");
+Log.remove_tag("Nobody");
+
 try {
-  // trying to use a log level that existed but has been removed
-  Log.log("Nobody", "... now I am really nobody")
+  // trying to remove a tag that do not exist
+  Log.remove_tag("Nobody");
 }
 catch (e) {
   Log.log("error", e.message);
 }
 
-// debug filter
-Log.log("debug", "Panier, panier, piano, ...");
-Log.log("debug", "One of us! One of us!", "FILTER1");
-Log.add_display_filters("FILTER1");
-try {
-  // add a filter that already exist
-  Log.add_display_filters("FILTER1");
-}
-catch (e) {
-  Log.log("error", e.message);
-}
-Log.log("debug", "Two of us! Two of us!", "FILTER1");
-Log.log("debug", "What am I?!", "FILTER2");
-try {
-  // remove a filter that does not exist
-  Log.remove_display_filters("FILTERNOOB");
-}
-catch (e) {
-  Log.log("error", e.message);
-}
+/****************************************** CHANGE LEVEL ******************************************/
 
-// multi debug filter
-Log.log("error", "This might be a legend", "FILTERA");
-Log.add_display_filters("FILTERA");
-Log.log("info", "Cher ami,", "FILTERA");
-Log.log("info", "Je suis toute émue de vous dire que j'ai", "FILTERA");
-Log.add_display_filters("FILTERB", "FILTERC", "FILTERD");
-Log.log("debug", "bien compris l'autre jour que vous aviez", "FILTERE");
-Log.log("warning", "toujours une envie folle de me faire", "FILTERB");
-Log.add_log_level("Hot", "[H]");
-Log.log("info", "danser. Je garde le souvenir de votre", "FILTERE");
-Log.log("Hot", "baiser et je voudrais bien que ce soit", "FILTERC");
-Log.remove_display_filters("FILTERB", "FILTERC", "FILTERD");
-Log.log("debug", "une preuve que je puisse être aimée", "FILTERA");
-Log.log("Hot", "par vous.", "FILTERA");
-Log.clear_display_filter();
-Log.log("debug", "Georges.");
-Log.log("debug", "Georges.", "FILTERA");
+/*TODO*/
